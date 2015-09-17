@@ -1,8 +1,13 @@
 # MailerPreviewRequestModel
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/mailer_preview_request_model`. To experiment with that code, run `bin/console` for an interactive prompt.
+This gem will patch Rails untill I convince Rails team to merge [PR 20646](https://github.com/rails/rails/pull/20646),
+that will enable Mailer Preview to pass params from Controller.
 
-TODO: Delete this and the text above, and describe your gem
+references:
+
+* https://github.com/rails/rails/pull/20646
+* https://github.com/rails/rails/pull/20608
+* http://stackoverflow.com/questions/29129542/access-request-parameters-in-rails-4-1-mailer-preview
 
 ## Installation
 
@@ -16,19 +21,76 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install mailer_preview_request_model
-
 ## Usage
 
-TODO: Write usage instructions here
+By default you will have access to method `mailer_model`  which is equal
+to controller `params`
 
-## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+class MyMailerPreview < ActionMailer::Preview
+  def good_news
+    MyMailer.good_news(client)
+  end
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release` to create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+  private
+     def client
+       @client ||= Client.find(request_model.fetch(:client_id))
+     end
+end
+```
+
+`http://0.0.0.0:3000/rails/mailers/my_mailer?client_id=123`
+
+But you can extend it to do more complex stuff (like authentication
+objects) ... and teoretically you can have this on some Staging server
+to preview email templates and stuff.
+
+```
+# config/initializer/mailer_preview.rb
+
+module OverrideRequestModel
+  def self.prepended(base)
+     base.before_action :authenticate!
+  end
+
+  def request_model
+     OpenStruct.new(user: current_user, client_id: params[:client_id])
+  end
+
+  def current_user
+    User.find session[:current_user_id]
+  end
+
+  def authenticate!
+     raise "not authenticated" unless current_user.admin?
+  end
+end
+
+Rails::MailersController.prepend OverrideRequestModel
+```
+
+```ruby
+# app/mailer_previews/my_mailer_preview.rb
+class MyMailerPreview < ActionMailer::Preview
+
+  def good_news
+    do_some_stuff_with_user_object
+    MyMailer.good_news(client)
+  end
+
+  private
+     def do_some_stuff_with_user_object
+        request_model.user.do_some_stuff
+     end
+
+     def client
+        Client.find(request_model.client_id) 
+     end
+end
+```
+
+`http://0.0.0.0:3000/rails/mailers/my_mailer/good_news?user_id:123&client_id:345`
 
 ## Contributing
 
@@ -37,3 +99,18 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
+
+### Abount the code
+
+The original code of Mailer Preview is composed of long methods with too
+much responsibilities. In order to make this patch work I needed to copy
+relativly large chunks of original code and extend the original with it
+alteration.
+
+### Trobleshooting dev enviroment
+
+* if Nokogiri fails to install make sure you have `zlib1g-dev` installed
+
+## Todo: 
+
+* ApplicationTests::MailerPreviewsTest 
