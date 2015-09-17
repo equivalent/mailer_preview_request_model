@@ -3,11 +3,6 @@ require 'minitest/autorun'
 require 'action_mailer'
 require 'action_controller'
 require 'rails'
-
-require 'set'
-
-require 'action_dispatch'
-require 'active_support/time'
 require 'mailer_preview_request_model'
 
 class BasePreviewInterceptorsTest < ActiveSupport::TestCase
