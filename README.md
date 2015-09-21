@@ -1,11 +1,12 @@
 # MailerPreviewRequestModel
 
 This gem is a patch that enables Rails to pass Controller `params` to Mailer Previews.
-I hope I will convince Rails team to merge [PR 20646](https://github.com/rails/rails/pull/20646) so that 
+I hope I will convince Rails team to merge [PR 21702](https://github.com/rails/rails/pull/21702) so that 
 this gem will not be needed.
 
 references:
 
+* https://github.com/rails/rails/pull/21702
 * https://github.com/rails/rails/pull/20646
 * https://github.com/rails/rails/pull/20608
 * http://stackoverflow.com/questions/29129542/access-request-parameters-in-rails-4-1-mailer-preview
