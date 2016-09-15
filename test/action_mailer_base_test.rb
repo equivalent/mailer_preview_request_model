@@ -15,7 +15,9 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
 
     def welcome(hash = {})
       headers['X-SPAM'] = "Not SPAM"
-      mail({subject: "The first email on new API!"}.merge!(hash))
+      mail({subject: "The first email on new API!"}.merge!(hash)) do |format|
+        format.text { render plain: 'Render text' }
+      end
     end
   end
 
