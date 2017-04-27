@@ -116,3 +116,7 @@ alteration.
 ## Todo: 
 
 * ApplicationTests::MailerPreviewsTest 
+
+## Alternatives
+
+* https://ruby.unicorn.tv/articles/access-url-request-parameters-from-actionmailer-preview
